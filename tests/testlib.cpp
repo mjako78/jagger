@@ -2,10 +2,11 @@
 #include "doctest/doctest.h"
 
 int factorial(int number) {
-  return number <= 1 ? number : factorial(number - 1) * number;
+  return number > 1 ? factorial(number - 1) * number : 1;
 }
 
 TEST_CASE("testing the factorial method") {
+  CHECK(factorial(0) == 1);
   CHECK(factorial(1) == 1);
   CHECK(factorial(2) == 2);
   CHECK(factorial(3) == 6);
