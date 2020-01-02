@@ -2,6 +2,6 @@
 #include <jagger/jagger.h>
 
 void hello() {
-  printf("Hello World!");
-  printf("From JAGGER!");
+  printf("Hello World!\n");
+  printf("From JAGGER!\n");
 }

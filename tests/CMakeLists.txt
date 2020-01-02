@@ -11,7 +11,6 @@ conan_basic_setup()
 add_executable(testlib testlib.cpp)
 
 # Should be linked to the main library, as well as the Doctest testing library
-# # target_link_libraries(testlib PRIVATE modern_library Catch2::Catch2)
 target_link_libraries(testlib PRIVATE jagger ${CONAN_LIBS})
 
 # If you register a test, then ctest and make test will run it.
