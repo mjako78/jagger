@@ -7,7 +7,7 @@ project(jagger
 )
 
 # Compiled library code
-# add_subdirectory(src)
+add_subdirectory(src)
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
