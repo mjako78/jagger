@@ -12,7 +12,8 @@ rc=$?
 if [ "$rc" -eq 0 ]; then
   printf "\n### LAUNCH TESTS ###\n\n"
   # launch test suite
-  ./tests/bin/testlib
+  # ./tests/bin/testlib
+  run-parts ./tests/bin
   rc=$?
 fi
 
