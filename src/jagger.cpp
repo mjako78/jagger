@@ -10,5 +10,5 @@ int jagger_init(const unsigned int mode, const unsigned int level, const char *l
     return 0;
   }
 
-  return -1;
+  return 1;
 }
