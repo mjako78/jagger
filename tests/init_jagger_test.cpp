@@ -1,5 +1,7 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <stdio.h>
+
 #include "doctest/doctest.h"
+
 #include "jagger/jagger.h"
 
 TEST_SUITE("init_jagger") {

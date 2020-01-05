@@ -11,8 +11,10 @@ cmake --build . --config Release
 rc=$?
 if [ "$rc" -eq 0 ]; then
   printf "\n### LAUNCH TESTS ###\n\n"
+  # ./tests/bin/testlib
+  # run-parts ./tests/bin
   # launch test suite
-  ./tests/bin/testlib
+  ./tests/bin/testsuite
   rc=$?
 fi
 
