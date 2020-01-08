@@ -5,7 +5,11 @@ BASE_DIR=`pwd`
 # cd to build directory and build project
 cd build
 printf "\n### BUILD PROJECT ###\n\n"
-cmake --build . --config Release
+# cmake --build . --config Release
+cmake --build .
+# Build for debug
+# cmake -DCMAKE_BUILD_TYPE=Debug --build .
+# cmake -DCMAKE_BUILD_TYPE=Debug --build .
 
 # check for successfull build
 rc=$?
