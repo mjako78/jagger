@@ -21,12 +21,12 @@
 
 int jagger_init(const unsigned int mode, const unsigned int level, const char *log_file);
 int jagger_close();
-void log_message(const unsigned int level, const char *message, ...);
-void log_trace(const char *message, ...);
-void log_debug(const char *message, ...);
-void log_info(const char *message, ...);
-void log_warning(const char *message, ...);
-void log_error(const char *message, ...);
-void log_fatal(const char *message, ...);
+int log_message(const unsigned int level, const char *message, ...);
+int log_trace(const char *message, ...);
+int log_debug(const char *message, ...);
+int log_info(const char *message, ...);
+int log_warning(const char *message, ...);
+int log_error(const char *message, ...);
+int log_fatal(const char *message, ...);
 
 #endif

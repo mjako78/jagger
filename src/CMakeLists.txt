@@ -6,7 +6,9 @@
 file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${jagger_SOURCE_DIR}/include/jagger/*.h")
 
 # Make a library
-add_library(jagger SHARED jagger.cpp ${HEADER_LIST})
+# add_library(jagger SHARED jagger.cpp ${HEADER_LIST})
+# On Windows make static library
+add_library(jagger STATIC jagger.cpp ${HEADER_LIST})
 
 # Headers directory
 target_include_directories(jagger PUBLIC ../include)

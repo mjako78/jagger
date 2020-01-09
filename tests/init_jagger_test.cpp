@@ -11,7 +11,7 @@ TEST_SUITE("init_jagger") {
   }
 
   TEST_CASE("file_ok" * doctest::description("file logging only")) {
-    CHECK(jagger_init(LOG_MODE_CONSOLE, LOG_LEVEL_DEBUG, "/tmp/jagger.log") == 1);
+    CHECK(jagger_init(LOG_MODE_CONSOLE, LOG_LEVEL_DEBUG, "jagger.log") == 1);
     CHECK(jagger_close() == 1);
   }
 
@@ -21,7 +21,7 @@ TEST_SUITE("init_jagger") {
   }
 
   TEST_CASE("multiple" * doctest::description("both console and file logging")) {
-    CHECK(jagger_init(LOG_MODE_CONSOLE | LOG_MODE_FILE, LOG_LEVEL_DEBUG, "/tmp/jagger.log") == 1);
+    CHECK(jagger_init(LOG_MODE_CONSOLE | LOG_MODE_FILE, LOG_LEVEL_DEBUG, "jagger.log") == 1);
     CHECK(jagger_close() == 1);
   }
 
