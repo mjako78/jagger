@@ -122,25 +122,25 @@ static int jagger_write_log(const unsigned int init_mode,
     char *level_name = NULL;
     switch(level) {
     case LOG_LEVEL_TRACE:
-      level_name = "TRACE";
+      level_name = (char *) "TRACE";
       break;
     case LOG_LEVEL_DEBUG:
-      level_name = "DEBUG";
+      level_name = (char *) "DEBUG";
       break;
     case LOG_LEVEL_INFO:
-      level_name = "INFO";
+      level_name = (char *) "INFO";
       break;
     case LOG_LEVEL_WARNING:
-      level_name = "WARNING";
+      level_name = (char *) "WARNING";
       break;
     case LOG_LEVEL_ERROR:
-      level_name = "ERROR";
+      level_name = (char *) "ERROR";
       break;
     case LOG_LEVEL_FATAL:
-      level_name = "FATAL";
+      level_name = (char *) "FATAL";
       break;
     default:
-      level_name = "NONE";
+      level_name = (char *) "NONE";
       break;
     }
     if (message != NULL) {
@@ -219,6 +219,26 @@ int log_message(const unsigned int level, const char *message, ...) {
   return rc;
 }
 
+int log_trace(const char *message, ...) {
+  if (message == NULL)
+    return 0;
+    va_list params;
+    va_start(params, message);
+    int rc = internal_log_message(LOG_LEVEL_TRACE, message, params);
+    va_end(params);
+    return rc;
+}
+
+int log_debug(const char *message, ...) {
+  if (message == NULL)
+    return 0;
+    va_list params;
+    va_start(params, message);
+    int rc = internal_log_message(LOG_LEVEL_DEBUG, message, params);
+    va_end(params);
+    return rc;
+}
+
 int log_info(const char *message, ...) {
   if (message == NULL)
     return 0;
@@ -235,6 +255,26 @@ int log_warning(const char *message, ...) {
   va_list params;
   va_start(params, message);
   int rc = internal_log_message(LOG_LEVEL_WARNING, message, params);
+  va_end(params);
+  return rc;
+}
+
+int log_error(const char *message, ...) {
+  if (message == NULL)
+    return 0;
+  va_list params;
+  va_start(params, message);
+  int rc = internal_log_message(LOG_LEVEL_ERROR, message, params);
+  va_end(params);
+  return rc;
+}
+
+int log_fatal(const char *message, ...) {
+  if (message == NULL)
+    return 0;
+  va_list params;
+  va_start(params, message);
+  int rc = internal_log_message(LOG_LEVEL_FATAL, message, params);
   va_end(params);
   return rc;
 }
