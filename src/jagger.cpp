@@ -174,17 +174,16 @@ static int jagger_write_log(const unsigned int init_mode,
   return 1;
 }
 
-int internal_log_message(const unsigned int level, const char *message, va_list params) {
+int internal_log_message(const unsigned int level, const char *message, va_list params, va_list params_copy) {
   // printf("*** internal_log_message ***\n");
   // printf("--> level: %d\n", level);
   // printf("--> message: %s\n", message);
-  size_t out_len = 0;
   char *out = NULL;
-  out_len = vsnprintf(NULL, 0, message, params);
+  size_t out_len = vsnprintf(NULL, 0, message, params);
   out = (char *) malloc((out_len + 1) * sizeof(char));
   if (out == NULL)
     return 0;
-  vsprintf(out, message, params);
+  vsnprintf(out, (out_len + 1), message, params_copy);
   // printf("--> out: %s\n", out);
   // printf("*****\n");
   int rc = jagger_write_log(LOG_MODE_CURRENT, LOG_LEVEL_CURRENT, NULL, level, out);
@@ -230,69 +229,83 @@ int jagger_close() {
 int log_message(const unsigned int level, const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(level, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(level, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
 
 int log_trace(const char *message, ...) {
   if (message == NULL)
     return 0;
-    va_list params;
-    va_start(params, message);
-    int rc = internal_log_message(LOG_LEVEL_TRACE, message, params);
-    va_end(params);
-    return rc;
+  va_list params, params_copy;
+  va_start(params, message);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_TRACE, message, params, params_copy);
+  va_end(params);
+  va_end(params_copy);
+  return rc;
 }
 
 int log_debug(const char *message, ...) {
   if (message == NULL)
     return 0;
-    va_list params;
-    va_start(params, message);
-    int rc = internal_log_message(LOG_LEVEL_DEBUG, message, params);
-    va_end(params);
-    return rc;
+  va_list params, params_copy;
+  va_start(params, message);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_DEBUG, message, params, params_copy);
+  va_end(params);
+  va_end(params_copy);
+  return rc;
 }
 
 int log_info(const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(LOG_LEVEL_INFO, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_INFO, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
 
 int log_warning(const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(LOG_LEVEL_WARNING, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_WARNING, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
 
 int log_error(const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(LOG_LEVEL_ERROR, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_ERROR, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
 
 int log_fatal(const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(LOG_LEVEL_FATAL, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_FATAL, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
