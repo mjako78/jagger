@@ -18,8 +18,13 @@
 #define LOG_LEVEL_ERROR   0x00010000
 #define LOG_LEVEL_FATAL   0x00100000
 #define LOG_LEVEL_CURRENT 0x10000000
+#define LOG_ROLL_NONE     0x00000000
+#define LOG_ROLL_SIZE     0x00000001
+#define LOG_ROLL_DAILY    0x00000010
+#define LOG_ROLL_CURRENT  0x10000000
 
 int jagger_init(const unsigned int mode, const unsigned int level, const char *log_file);
+int jagger_rolling_init(const unsigned int mode, const unsigned int level, const char *log_file, const unsigned int roll_mode, const unsigned int max_size);
 int jagger_close();
 int log_message(const unsigned int level, const char *message, ...);
 int log_trace(const char *message, ...);

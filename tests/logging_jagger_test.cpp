@@ -4,6 +4,7 @@
 
 #include "jagger/jagger.h"
 
+// TODO: Add prepare_logdir from utils before each test case
 TEST_SUITE("log_message") {
   TEST_CASE("not_initialized" * doctest::description("logging message when jagger not initialized")) {
     CHECK(log_message(LOG_LEVEL_DEBUG, "Sample message") == 0);

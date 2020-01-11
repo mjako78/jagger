@@ -205,6 +205,24 @@ int jagger_init(const unsigned int mode,
   return jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
 }
 
+int jagger_rolling_init(const unsigned int mode,
+  const unsigned int level,
+  const char *log_file,
+  const unsigned int roll_mode,
+  const unsigned int max_size
+) {
+  if ((mode & LOG_MODE_FILE) && log_file == NULL) {
+    return 0;
+  }
+  if ((mode & LOG_MODE_CONSOLE) && !(mode & LOG_MODE_FILE)) {
+    return 0;
+  }
+
+  int rc = jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
+
+  return rc;
+}
+
 int jagger_close() {
   return jagger_write_log(LOG_MODE_OFF, LOG_LEVEL_NONE, NULL, LOG_LEVEL_NONE, NULL);
 }
