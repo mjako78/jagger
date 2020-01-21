@@ -17,6 +17,10 @@ TEST_SUITE("rolling_log") {
       CHECK(jagger_rolling_init(LOG_MODE_CONSOLE, LOG_LEVEL_INFO, NULL, LOG_ROLL_SIZE, 10) == 0);
     }
 
+    SUBCASE("wrong size specified") {
+      CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 0) == 0);
+    }
+
     CHECK(jagger_close() == 1);
   }
 
@@ -35,10 +39,44 @@ TEST_SUITE("rolling_log") {
   }
 
   TEST_CASE("logfile_size" * doctest::description("start new logfile when size reach limit")) {
-    // TODO: roll by file size
+    // On rolling the archived logs "shift down"
+    // <new_file>   --> jagger.log
+    // jagger.log   --> jagger.1.log
+    // jagger.1.log --> jagger.2.log
+    // jagger.2.log --> jagger.3.log
     prepare_logdir();
+    prepare_fake_logs_with_size("test_logs/jagger.log", 1);
 
-    CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 10) == 1);
+    SUBCASE("no archived log exists yet") {
+      unsigned long fsize_before = file_size("test_logs/jagger.log");
+      CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
+      CHECK(log_error("Error; something went wrong") == 1);
+      CHECK(jagger_close() == 1);
+      unsigned long fsize_after = file_size("test_logs/jagger.log");
+      CHECK(file_contains("test_logs/jagger.log", "Error") == 1);
+      CHECK(file_contains("test_logs/jagger.log", "Error; something went wrong") == 1);
+      CHECK(file_size("test_logs/jagger.log") < 1024 * 1024);
+      CHECK(fsize_after < fsize_before);
+      CHECK(file_exists("test_logs/jagger.1.log") == 1);
+    }
+
+    SUBCASE("an archived log already exists") {
+      prepare_fake_logs_with_size("test_logs/jagger.1.log", 1);
+      CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
+      CHECK(log_error("Error; something went wrong") == 1);
+      CHECK(jagger_close() == 1);
+      CHECK(file_contains("test_logs/jagger.log", "Error") == 1);
+      CHECK(file_contains("test_logs/jagger.log", "Error; something went wrong") == 1);
+      CHECK(file_size("test_logs/jagger.log") < 1024 * 1024);
+      CHECK(file_exists("test_logs/jagger.2.log") == 1);
+    }
+  }
+
+  TEST_CASE("sample" * doctest::description("sample for debugging purpose only!")) {
+    prepare_logdir();
+    prepare_fake_logs_with_size("test_logs/jagger.log", 1);
+    CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
+    CHECK(log_error("Error; something went wrong") == 1);
     CHECK(jagger_close() == 1);
   }
 
