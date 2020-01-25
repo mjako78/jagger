@@ -3,8 +3,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#include <dirent.h>
 #include <jagger/jagger.h>
+#include "rolling.h"
 
 // Private methods
 void current_ts(char *timestamp) {
@@ -213,70 +213,6 @@ int jagger_init(const unsigned int mode,
   }
 
   return jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
-}
-
-int roll_file(const char *filename) {
-  // On rolling the archived logs "shift down"
-  // <new_file>   --> jagger.log
-  // jagger.log   --> jagger.1.log
-  // jagger.1.log --> jagger.2.log
-  // jagger.2.log --> jagger.3.log
-
-  // Check for basename and filepath
-  int dot = '.';
-  char *file_basename = basename((char *)filename);
-  char *file_ext = strrchr((char *)filename, dot);
-  size_t len = strstr((char *)filename, file_basename) - filename;
-  char *filepath = (char *)malloc(len + 1);
-  if (filepath) {
-    memcpy(filepath, filename, len);
-    filepath[len] = 0;
-  }
-  printf("--> basename: %s\n", file_basename);
-  printf("--> extension: %s\n", file_ext);
-  printf("--> filepath: %s\n", filepath);
-
-  // Find old log files in directory
-  DIR *dir;
-  struct dirent *ent;
-  int n = 0;
-  if ((dir = opendir(filepath)) != NULL) {
-    while(((ent = readdir(dir)) != NULL) && strstr(ent->d_name, file_ext)) {
-      n++;
-    }
-    closedir(dir);
-  }
-  int x = n;
-  char *old_logs[n];
-  if ((dir = opendir(filepath)) != NULL) {
-    while(((ent = readdir(dir)) != NULL) && strstr(ent->d_name, file_ext)) {
-      old_logs[--n] = ent->d_name;
-    }
-    closedir(dir);
-  }
-  for(int i = 0; i < x; i++) {
-    printf("--> file: %s\n", old_logs[i]);
-    // Check for counter, if any
-    char *left = strchr((char *)old_logs[i], dot);
-    char *right = strrchr((char *)old_logs[i], dot);
-    printf("... left : %s\n", left);
-    printf("... right: %s\n", right);
-    if (strcmp(left, right)) {
-      printf("  COUNTER!\n");
-      size_t l = strstr((char *)left, right) - left;
-      char *counter = (char *)malloc(l + 1);
-      if (counter) {
-        memcpy(counter, left, l);
-        counter[l] = 0;
-      }
-      printf("  ... counter: %s\n", counter);
-    } else {
-      printf("  NO COUNTER!\n");
-    }
-  }
-
-
-  return 0;
 }
 
 int jagger_rolling_init(const unsigned int mode,
