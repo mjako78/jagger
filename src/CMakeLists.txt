@@ -12,6 +12,13 @@ download_project(
 )
 add_subdirectory(${cwalk_SOURCE_DIR} ${cwalk_BINARY_DIR})
 
+# Download tinydir library
+download_project(
+  PROJ           tinydir
+  GIT_REPOSITORY https://github.com/cxong/tinydir.git
+  GIT_TAG        master
+)
+
 # Define headers location
 # set(HEADER_LIST "${jagger_SOURCE_DIR}/include/jagger/jagger.h")
 # For CMake >= 3.12, we can use glob
@@ -31,7 +38,7 @@ endif()
 
 # Headers directory
 target_include_directories(jagger PUBLIC ../include)
-include_directories(${cwalk_SOURCE_DIR}/include)
+include_directories(${cwalk_SOURCE_DIR}/include ${tinydir_SOURCE_DIR})
 
 # Dependencies
 target_link_libraries(jagger PRIVATE cwalk)
