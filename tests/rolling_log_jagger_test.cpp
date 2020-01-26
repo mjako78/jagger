@@ -60,35 +60,33 @@ TEST_SUITE("rolling_log") {
       CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
       CHECK(log_error("Error; something went wrong") == 1);
       CHECK(jagger_close() == 1);
-      CHECK(file_contains("test_logs/jagger.log", "Error") == 1);
+      CHECK(file_contains("test_logs/jagger.log", "ERROR") == 1);
       CHECK(file_contains("test_logs/jagger.log", "Error; something went wrong") == 1);
       CHECK(file_size("test_logs/jagger.log") < 1024 * 1024);
       CHECK(file_exists("test_logs/jagger.2.log") == 1);
     }
   }
 
-  TEST_CASE("sample" * doctest::description("sample for debugging purpose only!")) {
-    // XXX: Will be removed!
-    prepare_logdir();
-    prepare_fake_logs_with_size("test_logs/jagger.log", 1);
-    CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
-    CHECK(log_error("Error; something went wrong") == 1);
-    CHECK(jagger_close() == 1);
-  }
-
-  TEST_CASE("sample2" * doctest::description("sample for debugging purpose only!")) {
-    // XXX: Will be removed!
-    prepare_logdir();
-    prepare_fake_logs_with_size("test_logs/jagger.log", 1);
-    prepare_fake_logs_with_size("test_logs/jagger.1.log", 1);
-    prepare_fake_logs_with_size("test_logs/jagger.2.log", 1);
-    CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
-    CHECK(log_error("Error; something went wrong") == 1);
-    CHECK(jagger_close() == 1);
-  }
-
   TEST_CASE("daily" * doctest::description("start new logfile each day")) {
-    // TODO: roll daily
+    // If last modified date is before today, rename file as jagger.YYYY-MM-DD.log
     prepare_logdir();
+
+    SUBCASE("no log file exists yet") {
+      CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_DAILY, 1) == 1);
+      CHECK(log_error("Error; something went wrong") == 1);
+      CHECK(jagger_close() == 1);
+      CHECK(file_contains("test_logs/jagger.log", "Error; something went wrong") == 1);
+    }
+
+    SUBCASE("a log file exists yet") {
+      prepare_fake_logs_with_date("test_logs/jagger.log");
+      CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_DAILY, 1) == 1);
+      CHECK(log_error("Error; something went wrong") == 1);
+      CHECK(jagger_close() == 1);
+      CHECK(file_contains("test_logs/jagger.log", "ERROR") == 1);
+      CHECK(file_contains("test_logs/jagger.log", "Error; something went wrong") == 1);
+      CHECK(file_contains("test_logs/jagger.log", "INFO") == 0);
+      CHECK(file_contains("test_logs/jagger.log", "Sample message") == 0);
+    }
   }
 }

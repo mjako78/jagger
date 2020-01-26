@@ -1,8 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <utime.h>
+#include <sys/stat.h>
 
 #include "utils.h"
+
+void current_ts(char *timestamp) {
+  time_t now = time(0);
+  char buffer[20];
+  strftime(buffer, sizeof(buffer), "%Y-%m-%d %X", localtime(&now));
+  strcpy(timestamp, buffer);
+}
 
 void prepare_logdir() {
   #ifdef _WIN32
@@ -15,7 +25,10 @@ void prepare_logdir() {
 }
 
 void prepare_fake_logs_with_size(const char *filename, const int size) {
-  const char *log_line = "2020-01-12 22:00:39 - INFO       Sample message";
+  char now[100];
+  current_ts(now);
+  char log_line[100];
+  sprintf(log_line, "%s - INFO       Sample message", now);
   int line_len = strlen(log_line);
   FILE *file = fopen(filename, "w");
   unsigned long file_size = 0;
@@ -24,6 +37,26 @@ void prepare_fake_logs_with_size(const char *filename, const int size) {
     fprintf(file, "%s\n", log_line);
     file_size = file_size + line_len;
   }
+  fclose(file);
+}
+
+void prepare_fake_logs_with_date(const char *filename) {
+  prepare_fake_logs(filename);
+  struct utimbuf file_times;
+  time_t mtime = time(NULL);
+  file_times.actime = mtime - SECONDS_PER_DAY;
+  file_times.modtime = mtime - SECONDS_PER_DAY;
+  utime(filename, &file_times);
+}
+
+void prepare_fake_logs(const char *filename) {
+  char now[100];
+  current_ts(now);
+  char log_line[100];
+  sprintf(log_line, "%s - INFO       Sample message", now);
+  int line_len = strlen(log_line);
+  FILE *file = fopen(filename, "w");
+  fprintf(file, "%s\n", log_line);
   fclose(file);
 }
 

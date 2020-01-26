@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
 #include <jagger/jagger.h>
 #include "rolling.h"
 
@@ -14,6 +15,18 @@ void current_ts(char *timestamp) {
   char buffer[20];
   strftime(buffer, sizeof(buffer), "%Y-%m-%d %X", &ts);
   strcpy(timestamp, buffer);
+}
+
+int need_daily_rolling(const char *filename) {
+  struct stat attr;
+  stat(filename, &attr);
+  char date[20];
+  strftime(date, sizeof(date), "%Y-%m-%d", localtime(&attr.st_mtime));
+  char today[20];
+  time_t now;
+  time(&now);
+  strftime(today, sizeof(today), "%Y-%m-%d", localtime(&now));
+  return strcmp(date, today) == 0 ? 0 : 1;
 }
 
 unsigned long file_size(const char *filename) {
@@ -234,8 +247,13 @@ int jagger_rolling_init(const unsigned int mode,
     unsigned long fsize = file_size(log_file);
     unsigned long cutoff_size = max_size * 1024 * 1024;
     if (fsize > cutoff_size) {
-      if (roll_file(log_file) == -1)
+      if (roll_file_by_size(log_file) == -1)
         return 0;
+    }
+  }
+  if ((roll_mode & LOG_ROLL_DAILY) && need_daily_rolling(log_file)) {
+    if (roll_file_by_day(log_file) == -1) {
+      return 0;
     }
   }
   return jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
