@@ -39,11 +39,6 @@ TEST_SUITE("rolling_log") {
   }
 
   TEST_CASE("logfile_size" * doctest::description("start new logfile when size reach limit")) {
-    // On rolling the archived logs "shift down"
-    // <new_file>   --> jagger.log
-    // jagger.log   --> jagger.1.log
-    // jagger.1.log --> jagger.2.log
-    // jagger.2.log --> jagger.3.log
     prepare_logdir();
     prepare_fake_logs_with_size("test_logs/jagger.log", 1);
 
@@ -73,8 +68,20 @@ TEST_SUITE("rolling_log") {
   }
 
   TEST_CASE("sample" * doctest::description("sample for debugging purpose only!")) {
+    // XXX: Will be removed!
     prepare_logdir();
     prepare_fake_logs_with_size("test_logs/jagger.log", 1);
+    CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
+    CHECK(log_error("Error; something went wrong") == 1);
+    CHECK(jagger_close() == 1);
+  }
+
+  TEST_CASE("sample2" * doctest::description("sample for debugging purpose only!")) {
+    // XXX: Will be removed!
+    prepare_logdir();
+    prepare_fake_logs_with_size("test_logs/jagger.log", 1);
+    prepare_fake_logs_with_size("test_logs/jagger.1.log", 1);
+    prepare_fake_logs_with_size("test_logs/jagger.2.log", 1);
     CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
     CHECK(log_error("Error; something went wrong") == 1);
     CHECK(jagger_close() == 1);

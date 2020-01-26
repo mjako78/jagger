@@ -234,14 +234,11 @@ int jagger_rolling_init(const unsigned int mode,
     unsigned long fsize = file_size(log_file);
     unsigned long cutoff_size = max_size * 1024 * 1024;
     if (fsize > cutoff_size) {
-      // XXX: rc what should be?
-      int rc = roll_file(log_file);
+      if (roll_file(log_file) == -1)
+        return 0;
     }
   }
-
-  int rc = jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
-
-  return rc;
+  return jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
 }
 
 int jagger_close() {
