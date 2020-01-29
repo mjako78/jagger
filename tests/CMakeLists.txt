@@ -27,5 +27,5 @@ conan_basic_setup()
 
 # Using DOCTEST_CONFIG_IMPLEMENT; one main to rule them all :)
 file(GLOB TEST_SOURCES "*_test.cpp")
-add_executable(testsuite main.cpp ${TEST_SOURCES})
+add_executable(testsuite main.cpp ${TEST_SOURCES} utils.cpp)
 target_link_libraries(testsuite PRIVATE jagger ${CONAN_LIBS})

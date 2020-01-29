@@ -3,7 +3,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
 #include <jagger/jagger.h>
+#include "rolling.h"
 
 // Private methods
 void current_ts(char *timestamp) {
@@ -13,6 +15,28 @@ void current_ts(char *timestamp) {
   char buffer[20];
   strftime(buffer, sizeof(buffer), "%Y-%m-%d %X", &ts);
   strcpy(timestamp, buffer);
+}
+
+int need_daily_rolling(const char *filename) {
+  struct stat attr;
+  stat(filename, &attr);
+  char date[20];
+  strftime(date, sizeof(date), "%Y-%m-%d", localtime(&attr.st_mtime));
+  char today[20];
+  time_t now;
+  time(&now);
+  strftime(today, sizeof(today), "%Y-%m-%d", localtime(&now));
+  return strcmp(date, today) == 0 ? 0 : 1;
+}
+
+unsigned long file_size(const char *filename) {
+  FILE *file = fopen(filename, "r");
+  if (file == NULL)
+    return 0;
+  fseek(file, 0, SEEK_END);
+  unsigned long size = ftell(file);
+  fclose(file);
+  return size;
 }
 
 static void jagger_write_log_console(FILE *output,
@@ -174,17 +198,16 @@ static int jagger_write_log(const unsigned int init_mode,
   return 1;
 }
 
-int internal_log_message(const unsigned int level, const char *message, va_list params) {
+int internal_log_message(const unsigned int level, const char *message, va_list params, va_list params_copy) {
   // printf("*** internal_log_message ***\n");
   // printf("--> level: %d\n", level);
   // printf("--> message: %s\n", message);
-  size_t out_len = 0;
   char *out = NULL;
-  out_len = vsnprintf(NULL, 0, message, params);
+  size_t out_len = vsnprintf(NULL, 0, message, params);
   out = (char *) malloc((out_len + 1) * sizeof(char));
   if (out == NULL)
     return 0;
-  vsprintf(out, message, params);
+  vsnprintf(out, (out_len + 1), message, params_copy);
   // printf("--> out: %s\n", out);
   // printf("*****\n");
   int rc = jagger_write_log(LOG_MODE_CURRENT, LOG_LEVEL_CURRENT, NULL, level, out);
@@ -205,6 +228,37 @@ int jagger_init(const unsigned int mode,
   return jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
 }
 
+int jagger_rolling_init(const unsigned int mode,
+  const unsigned int level,
+  const char *log_file,
+  const unsigned int roll_mode,
+  const unsigned int max_size
+) {
+  if ((mode & LOG_MODE_FILE) && log_file == NULL) {
+    return 0;
+  }
+  if ((mode & LOG_MODE_CONSOLE) && !(mode & LOG_MODE_FILE)) {
+    return 0;
+  }
+  if ((roll_mode & LOG_ROLL_SIZE) && max_size <= 0) {
+    return 0;
+  }
+  if (roll_mode & LOG_ROLL_SIZE) {
+    unsigned long fsize = file_size(log_file);
+    unsigned long cutoff_size = max_size * 1024 * 1024;
+    if (fsize > cutoff_size) {
+      if (roll_file_by_size(log_file) == -1)
+        return 0;
+    }
+  }
+  if ((roll_mode & LOG_ROLL_DAILY) && need_daily_rolling(log_file)) {
+    if (roll_file_by_day(log_file) == -1) {
+      return 0;
+    }
+  }
+  return jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
+}
+
 int jagger_close() {
   return jagger_write_log(LOG_MODE_OFF, LOG_LEVEL_NONE, NULL, LOG_LEVEL_NONE, NULL);
 }
@@ -212,69 +266,83 @@ int jagger_close() {
 int log_message(const unsigned int level, const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(level, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(level, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
 
 int log_trace(const char *message, ...) {
   if (message == NULL)
     return 0;
-    va_list params;
-    va_start(params, message);
-    int rc = internal_log_message(LOG_LEVEL_TRACE, message, params);
-    va_end(params);
-    return rc;
+  va_list params, params_copy;
+  va_start(params, message);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_TRACE, message, params, params_copy);
+  va_end(params);
+  va_end(params_copy);
+  return rc;
 }
 
 int log_debug(const char *message, ...) {
   if (message == NULL)
     return 0;
-    va_list params;
-    va_start(params, message);
-    int rc = internal_log_message(LOG_LEVEL_DEBUG, message, params);
-    va_end(params);
-    return rc;
+  va_list params, params_copy;
+  va_start(params, message);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_DEBUG, message, params, params_copy);
+  va_end(params);
+  va_end(params_copy);
+  return rc;
 }
 
 int log_info(const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(LOG_LEVEL_INFO, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_INFO, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
 
 int log_warning(const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(LOG_LEVEL_WARNING, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_WARNING, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
 
 int log_error(const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(LOG_LEVEL_ERROR, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_ERROR, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
 
 int log_fatal(const char *message, ...) {
   if (message == NULL)
     return 0;
-  va_list params;
+  va_list params, params_copy;
   va_start(params, message);
-  int rc = internal_log_message(LOG_LEVEL_FATAL, message, params);
+  va_copy(params_copy, params);
+  int rc = internal_log_message(LOG_LEVEL_FATAL, message, params, params_copy);
   va_end(params);
+  va_end(params_copy);
   return rc;
 }
