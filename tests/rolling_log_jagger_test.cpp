@@ -43,14 +43,14 @@ TEST_SUITE("rolling_log") {
     prepare_fake_logs_with_size("test_logs/jagger.log", 1);
 
     SUBCASE("no archived log exists yet") {
-      unsigned long fsize_before = file_size("test_logs/jagger.log");
+      unsigned long fsize_before = get_file_size("test_logs/jagger.log");
       CHECK(jagger_rolling_init(LOG_MODE_FILE, LOG_LEVEL_INFO, "test_logs/jagger.log", LOG_ROLL_SIZE, 1) == 1);
       CHECK(log_error("Error; something went wrong") == 1);
       CHECK(jagger_close() == 1);
-      unsigned long fsize_after = file_size("test_logs/jagger.log");
+      unsigned long fsize_after = get_file_size("test_logs/jagger.log");
       CHECK(file_contains("test_logs/jagger.log", "Error") == 1);
       CHECK(file_contains("test_logs/jagger.log", "Error; something went wrong") == 1);
-      CHECK(file_size("test_logs/jagger.log") < 1024 * 1024);
+      CHECK(get_file_size("test_logs/jagger.log") < 1024 * 1024);
       CHECK(fsize_after < fsize_before);
       CHECK(file_exists("test_logs/jagger.1.log") == 1);
     }
@@ -62,7 +62,7 @@ TEST_SUITE("rolling_log") {
       CHECK(jagger_close() == 1);
       CHECK(file_contains("test_logs/jagger.log", "ERROR") == 1);
       CHECK(file_contains("test_logs/jagger.log", "Error; something went wrong") == 1);
-      CHECK(file_size("test_logs/jagger.log") < 1024 * 1024);
+      CHECK(get_file_size("test_logs/jagger.log") < 1024 * 1024);
       CHECK(file_exists("test_logs/jagger.2.log") == 1);
     }
   }

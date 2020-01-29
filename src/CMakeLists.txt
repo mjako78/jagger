@@ -1,23 +1,34 @@
 ### Main library
 
-# Add custom cmake modules path
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-include(DownloadProject)
+# Add additional cmake module
+include(FetchContent)
 
 # Download cwalk library
-download_project(
-  PROJ           cwalk
+FetchContent_Declare(
+  cwalk
   GIT_REPOSITORY https://github.com/likle/cwalk.git
-  GIT_TAG        stable
+  GIT_TAG        master
 )
-add_subdirectory(${cwalk_SOURCE_DIR} ${cwalk_BINARY_DIR})
+FetchContent_GetProperties(cwalk)
+if(NOT cwalk_POPULATED)
+  FetchContent_Populate(cwalk)
+  message(STATUS "cwalk source dir: ${cwalk_SOURCE_DIR}")
+  message(STATUS "cwalk binary dir: ${cwalk_BINARY_DIR}")
+  add_subdirectory(${cwalk_SOURCE_DIR} ${cwalk_BINARY_DIR})
+endif()
 
 # Download tinydir library
-download_project(
-  PROJ           tinydir
+FetchContent_Declare(
+  tinydir
   GIT_REPOSITORY https://github.com/cxong/tinydir.git
   GIT_TAG        master
 )
+FetchContent_GetProperties(tinydir)
+if(NOT tinydir_POPULATED)
+  FetchContent_Populate(tinydir)
+  message(STATUS "tinydir source dir: ${tinydir_SOURCE_DIR}")
+  message(STATUS "tinydir binary dir: ${tinydir_BINARY_DIR}")
+endif()
 
 # Define headers location
 # set(HEADER_LIST "${jagger_SOURCE_DIR}/include/jagger/jagger.h")
@@ -28,11 +39,9 @@ file(GLOB SRC_LIST CONFIGURE_DEPENDS "${jagger_SOURCE_DIR}/src/*.cpp")
 # Make a library
 if(MSVC)
   # On Windows make static library
-  add_library(jagger STATIC jagger.cpp rolling.cpp ${HEADER_LIST})
   add_library(jagger STATIC ${SRC_LIST} ${HEADER_LIST})
 else()
   # On Unix make shared library
-  # add_library(jagger SHARED jagger.cpp rolling.cpp ${HEADER_LIST})
   add_library(jagger SHARED ${SRC_LIST} ${HEADER_LIST})
 endif()
 

@@ -2,12 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <utime.h>
+#ifdef _WIN32
+  #include <sys/utime.h>
+#else
+  #include <utime.h>
+#endif
 #include <sys/stat.h>
 
 #include "utils.h"
 
-void current_ts(char *timestamp) {
+void current_datetime(char *timestamp) {
   time_t now = time(0);
   char buffer[20];
   strftime(buffer, sizeof(buffer), "%Y-%m-%d %X", localtime(&now));
@@ -15,18 +19,18 @@ void current_ts(char *timestamp) {
 }
 
 void prepare_logdir() {
-  #ifdef _WIN32
-    system("rmdir /S /Q test_logs 2> nul");
-    system("mkdir test_logs 2> nul");
-  #else
-    system("rm -rf test_logs 2> /dev/null");
-    system("mkdir test_logs 2> /dev/null");
-  #endif
+#ifdef _WIN32
+  system("rmdir /S /Q test_logs 2> nul");
+  system("mkdir test_logs 2> nul");
+#else
+  system("rm -rf test_logs 2> /dev/null");
+  system("mkdir test_logs 2> /dev/null");
+#endif
 }
 
 void prepare_fake_logs_with_size(const char *filename, const int size) {
   char now[100];
-  current_ts(now);
+  current_datetime(now);
   char log_line[100];
   sprintf(log_line, "%s - INFO       Sample message", now);
   int line_len = strlen(log_line);
@@ -51,7 +55,7 @@ void prepare_fake_logs_with_date(const char *filename) {
 
 void prepare_fake_logs(const char *filename) {
   char now[100];
-  current_ts(now);
+  current_datetime(now);
   char log_line[100];
   sprintf(log_line, "%s - INFO       Sample message", now);
   int line_len = strlen(log_line);
@@ -73,7 +77,7 @@ int file_exists(const char *filename) {
   return 1;
 }
 
-char* read_file(const char *filename) {
+char *read_file(const char *filename) {
   char *buffer = NULL;
   int string_size, read_size;
   FILE *file = fopen(filename, "r");
@@ -84,19 +88,19 @@ char* read_file(const char *filename) {
   string_size = ftell(file);
   rewind(file);
   // Allocate memory to store file content
-  buffer = (char *) malloc(sizeof(char) * (string_size + 1));
+  buffer = (char *)malloc(sizeof(char) * (string_size + 1));
   read_size = fread(buffer, sizeof(char), string_size, file);
   buffer[string_size] = '\0';
-  if (string_size != read_size) {
-    // Something went wrong, throw away buffer and set buffer to null
-    free(buffer);
-    buffer = NULL;
-  }
+  // if (string_size != read_size) {
+  //   // Something went wrong, throw away buffer and set buffer to null
+  //   free(buffer);
+  //   buffer = NULL;
+  // }
   fclose(file);
   return buffer;
 }
 
-unsigned long file_size(const char *filename) {
+unsigned long get_file_size(const char *filename) {
   FILE *file = fopen(filename, "r");
   if (file == NULL)
     return 0;
