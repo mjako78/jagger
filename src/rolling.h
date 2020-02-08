@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef ROLLING_G
+#ifndef ROLLING_H
 #define ROLLING_H
 
 int roll_file_by_size(const char *filename);

@@ -3,7 +3,7 @@
 #ifndef JAGGER_H
 #define JAGGER_H
 
-#define JAGGER_VERSION "0.1.0"
+#define JAGGER_VERSION "0.3.0"
 
 // Constants; mode and level
 #define LOG_MODE_OFF      0x00000000
@@ -23,8 +23,11 @@
 #define LOG_ROLL_DAILY    0x00000010
 #define LOG_ROLL_CURRENT  0x10000000
 
+#define JAGGER_INI_FILENAME "jagger.ini"
+
 int jagger_init(const unsigned int mode, const unsigned int level, const char *log_file);
 int jagger_rolling_init(const unsigned int mode, const unsigned int level, const char *log_file, const unsigned int roll_mode, const unsigned int max_size);
+int jagger_config_init();
 int jagger_close();
 int log_message(const unsigned int level, const char *message, ...);
 int log_trace(const char *message, ...);
