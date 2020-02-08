@@ -46,10 +46,6 @@ static void jagger_write_log_console(FILE *output,
   const char *level_name,
   const char *message
 ) {
-  // printf("--> jagger_write_log_console called <--\n");
-  // printf("... timestamp : %s\n", timestamp);
-  // printf("... level_name: %s\n", level_name);
-  // printf("... message   : %s\n", message);
   fprintf(output, "%s - %-10s %s\n", timestamp, level_name, message);
   fflush(output);
 }
@@ -59,10 +55,6 @@ static void jagger_write_log_file(FILE *log_file,
   const char *level_name,
   const char *message
 ) {
-  // printf("--> jagger_write_log_file called <--\n");
-  // printf("... timestamp : %s\n", timestamp);
-  // printf("... level_name: %s\n", level_name);
-  // printf("... message   : %s\n", message);
   if (log_file != NULL) {
     fprintf(log_file, "%s - %-10s %s\n", timestamp, level_name, message);
     fflush(log_file);

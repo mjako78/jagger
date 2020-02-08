@@ -91,11 +91,6 @@ char *read_file(const char *filename) {
   buffer = (char *)malloc(sizeof(char) * (string_size + 1));
   read_size = fread(buffer, sizeof(char), string_size, file);
   buffer[string_size] = '\0';
-  // if (string_size != read_size) {
-  //   // Something went wrong, throw away buffer and set buffer to null
-  //   free(buffer);
-  //   buffer = NULL;
-  // }
   fclose(file);
   return buffer;
 }
