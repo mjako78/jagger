@@ -30,6 +30,32 @@ if(NOT tinydir_POPULATED)
   message(STATUS "tinydir binary dir: ${tinydir_BINARY_DIR}")
 endif()
 
+# Download whereami library
+FetchContent_Declare(
+  whereami
+  GIT_REPOSITORY https://github.com/gpakosz/whereami.git
+  GIT_TAG        master
+)
+FetchContent_GetProperties(whereami)
+if (NOT whereami_POPULATED)
+  FetchContent_Populate(whereami)
+  message(STATUS "whereami source dir: ${whereami_SOURCE_DIR}")
+  message(STATUS "whereami binary dir: ${whereami_BINARY_DIR}")
+endif()
+
+# Download inih library
+FetchContent_Declare(
+  inih
+  GIT_REPOSITORY https://github.com/benhoyt/inih.git
+  GIT_TAG        master
+)
+FetchContent_GetProperties(inih)
+if (NOT inih_POPULATED)
+  FetchContent_Populate(inih)
+  message(STATUS "inih source dir: ${inih_SOURCE_DIR}")
+  message(STATUS "inih binary dir: ${inih_BINARY_DIR}")
+endif()
+
 # Define headers location
 # set(HEADER_LIST "${jagger_SOURCE_DIR}/include/jagger/jagger.h")
 # For CMake >= 3.12, we can use glob
@@ -39,15 +65,20 @@ file(GLOB SRC_LIST CONFIGURE_DEPENDS "${jagger_SOURCE_DIR}/src/*.cpp")
 # Make a library
 if(MSVC)
   # On Windows make static library
-  add_library(jagger STATIC ${SRC_LIST} ${HEADER_LIST})
+  add_library(jagger STATIC ${SRC_LIST} ${inih_SOURCE_DIR}/ini.c ${HEADER_LIST})
 else()
   # On Unix make shared library
-  add_library(jagger SHARED ${SRC_LIST} ${HEADER_LIST})
+  add_library(jagger SHARED ${SRC_LIST} ${inih_SOURCE_DIR}/ini.c ${HEADER_LIST})
 endif()
 
 # Headers directory
 target_include_directories(jagger PUBLIC ../include)
-include_directories(${cwalk_SOURCE_DIR}/include ${tinydir_SOURCE_DIR})
+include_directories(
+  ${cwalk_SOURCE_DIR}/include
+  ${tinydir_SOURCE_DIR}
+  ${whereami_SOURCE_DIR}/src
+  ${inih_SOURCE_DIR}
+)
 
 # Dependencies
 target_link_libraries(jagger PRIVATE cwalk)

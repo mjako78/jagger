@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.11)
 project(jagger
   VERSION 0.1.0
   DESCRIPTION "Just another logger for C"
-  LANGUAGES CXX
+  LANGUAGES C CXX
 )
 
 # Compiled library code
