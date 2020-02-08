@@ -4,8 +4,10 @@
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <ini.h>
 #include <jagger/jagger.h>
 #include "rolling.h"
+#include "config_loader.h"
 
 // Private methods
 void current_ts(char *timestamp) {
@@ -44,10 +46,6 @@ static void jagger_write_log_console(FILE *output,
   const char *level_name,
   const char *message
 ) {
-  // printf("--> jagger_write_log_console called <--\n");
-  // printf("... timestamp : %s\n", timestamp);
-  // printf("... level_name: %s\n", level_name);
-  // printf("... message   : %s\n", message);
   fprintf(output, "%s - %-10s %s\n", timestamp, level_name, message);
   fflush(output);
 }
@@ -57,10 +55,6 @@ static void jagger_write_log_file(FILE *log_file,
   const char *level_name,
   const char *message
 ) {
-  // printf("--> jagger_write_log_file called <--\n");
-  // printf("... timestamp : %s\n", timestamp);
-  // printf("... level_name: %s\n", level_name);
-  // printf("... message   : %s\n", message);
   if (log_file != NULL) {
     fprintf(log_file, "%s - %-10s %s\n", timestamp, level_name, message);
     fflush(log_file);
@@ -79,16 +73,6 @@ static int jagger_write_log(const unsigned int init_mode,
   static unsigned int curr_level = LOG_LEVEL_NONE;
   static const char *curr_log_filepath = NULL;
 
-  // printf("\n*** JAGGER_WRITE_LOG ***\n");
-  // printf("--> init_mode        : %d\n", init_mode);
-  // printf("--> init_level       : %d\n", init_level);
-  // printf("--> init_log_file    : %s\n", init_log_file);
-  // printf("--> level            : %d\n", level);
-  // printf("--> message          : %s\n", message);
-  // printf("--> curr_mode        : %d\n", curr_mode);
-  // printf("--> curr_level       : %d\n", curr_level);
-  // printf("--> curr_log_filepath: %s\n", curr_log_filepath);
-
   if (init_mode == LOG_MODE_OFF &&
     init_level == LOG_LEVEL_NONE &&
     init_log_file == NULL &&
@@ -96,7 +80,6 @@ static int jagger_write_log(const unsigned int init_mode,
     message == NULL
   ) {
     // Close logging
-    // printf("--> close logging\n");
     curr_mode = LOG_MODE_OFF;
     curr_level =LOG_LEVEL_NONE;
     curr_log_filepath = NULL;
@@ -114,7 +97,6 @@ static int jagger_write_log(const unsigned int init_mode,
 
   if (curr_mode == LOG_MODE_OFF && curr_level == LOG_LEVEL_NONE) {
     // Not initialized; abort
-    // printf("--> not initialized; abort\n");
     return 0;
   }
 
@@ -123,8 +105,6 @@ static int jagger_write_log(const unsigned int init_mode,
       curr_log_filepath = init_log_file;
     } else {
       // Already initialized; abort
-      // perror("Error - jagger already initialized!")
-      // printf("--> already initialized; abort\n");
       return 0;
     }
   }
@@ -132,17 +112,13 @@ static int jagger_write_log(const unsigned int init_mode,
   if (curr_log_filepath != NULL) {
     if ((curr_log_file = fopen(curr_log_filepath, "a+")) == NULL) {
       // Unable to open log file in append mode; abort
-      // fprintf(stderr, "%s - ", curr_log_filepath);
-      // perror("Error opening log file");
       curr_log_filepath = NULL;
-      // printf("--> unable to open log file; abort\n");
       return 0;
     }
   }
 
   // Write message to expected output if level compatible
   if (curr_level <= level) {
-    // printf("--> curr_level<=level\n");
     char *level_name = NULL;
     switch(level) {
     case LOG_LEVEL_TRACE:
@@ -168,9 +144,7 @@ static int jagger_write_log(const unsigned int init_mode,
       break;
     }
     if (message != NULL) {
-      // printf("--> message!=NULL\n");
       if (curr_mode & LOG_MODE_CONSOLE) {
-        // printf("--> log_to_console\n");
         FILE *output = NULL;
         if (level & LOG_LEVEL_WARNING || level & LOG_LEVEL_ERROR || level & LOG_LEVEL_FATAL)
           output = stderr;
@@ -179,7 +153,6 @@ static int jagger_write_log(const unsigned int init_mode,
         jagger_write_log_console(output, now, level_name, message);
       }
       if (curr_mode & LOG_MODE_FILE) {
-        // printf("--> log_to_file\n");
         jagger_write_log_file(curr_log_file, now, level_name, message);
       }
     }
@@ -188,28 +161,19 @@ static int jagger_write_log(const unsigned int init_mode,
   // Try to close log file
   if (curr_log_file != NULL && curr_log_filepath != NULL) {
     if (fclose(curr_log_file) != 0) {
-      // perror("Error closing log file");
-      // printf("--> unable to close log file; abort\n");
       return 0;
     }
   }
-  // printf("*****\n");
-
   return 1;
 }
 
 int internal_log_message(const unsigned int level, const char *message, va_list params, va_list params_copy) {
-  // printf("*** internal_log_message ***\n");
-  // printf("--> level: %d\n", level);
-  // printf("--> message: %s\n", message);
   char *out = NULL;
   size_t out_len = vsnprintf(NULL, 0, message, params);
   out = (char *) malloc((out_len + 1) * sizeof(char));
   if (out == NULL)
     return 0;
   vsnprintf(out, (out_len + 1), message, params_copy);
-  // printf("--> out: %s\n", out);
-  // printf("*****\n");
   int rc = jagger_write_log(LOG_MODE_CURRENT, LOG_LEVEL_CURRENT, NULL, level, out);
   free(out);
   return rc;
@@ -257,6 +221,35 @@ int jagger_rolling_init(const unsigned int mode,
     }
   }
   return jagger_write_log(mode, level, log_file, LOG_LEVEL_NONE, NULL);
+}
+
+int jagger_config_init() {
+  char *executable_path = get_executable_path();
+  if (executable_path == NULL) {
+    return 0;
+  }
+  char ini_filepath[FILENAME_MAX];
+  sprintf(ini_filepath, "%s/%s", executable_path, JAGGER_INI_FILENAME);
+  free(executable_path);
+  
+  jconfig cfg;
+  config_init(&cfg);
+  if (ini_parse(ini_filepath, handler, &cfg) < 0) {
+    return 0;
+  }
+
+  unsigned int level = config_get_level(cfg);
+  unsigned int mode = config_get_mode(cfg);
+  unsigned int roll = config_get_rolling(cfg);
+  char *filename = config_get_filename(cfg);
+  int max_size = config_get_maxsize(cfg);
+
+  // Need to free memory?
+  config_free(&cfg);
+
+  return roll == LOG_ROLL_NONE ?
+    jagger_init(mode, level, filename) :
+    jagger_rolling_init(mode, level, filename, roll, max_size);
 }
 
 int jagger_close() {

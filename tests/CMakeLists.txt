@@ -7,6 +7,33 @@ add_definitions("-std=c++11")
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
+# Download whereami library via FetchContent CMake module
+include(FetchContent)
+FetchContent_Declare(
+  whereami
+  GIT_REPOSITORY https://github.com/gpakosz/whereami.git
+  GIT_TAG        master
+)
+FetchContent_GetProperties(whereami)
+if (NOT whereami_POPULATED)
+  FetchContent_Populate(whereami)
+  message(STATUS "whereami source dir: ${whereami_SOURCE_DIR}")
+  message(STATUS "whereami binary dir: ${whereami_BINARY_DIR}")
+endif()
+
+# Download inih library
+FetchContent_Declare(
+  inih
+  GIT_REPOSITORY https://github.com/benhoyt/inih.git
+  GIT_TAG        master
+)
+FetchContent_GetProperties(inih)
+if (NOT inih_POPULATED)
+  FetchContent_Populate(inih)
+  message(STATUS "inih source dir: ${inih_SOURCE_DIR}")
+  message(STATUS "inih binary dir: ${inih_BINARY_DIR}")
+endif()
+
 # Tests need to be added as executables first
 # add_executable(testlib testlib.cpp)
 
@@ -25,7 +52,13 @@ conan_basic_setup()
 #   target_link_libraries(${testname} PRIVATE jagger ${CONAN_LIBS})
 # endforeach()
 
+include_directories(${whereami_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src ${inih_SOURCE_DIR})
+
 # Using DOCTEST_CONFIG_IMPLEMENT; one main to rule them all :)
 file(GLOB TEST_SOURCES "*_test.cpp")
-add_executable(testsuite main.cpp ${TEST_SOURCES} utils.cpp)
+add_executable(testsuite main.cpp ${TEST_SOURCES}
+  utils.cpp
+  fake_inis.cpp
+  ${whereami_SOURCE_DIR}/src/whereami.c
+)
 target_link_libraries(testsuite PRIVATE jagger ${CONAN_LIBS})
