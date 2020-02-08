@@ -33,10 +33,6 @@ TEST_SUITE("config_file") {
   }
 
   TEST_CASE("console_only" * doctest::description("should load a console only configuration")) {
-    // if (console_only() == 0) {
-    //   printf("Failed to initialize test\n");
-    //   return;
-    // }
     CHECK(console_only() == 1);
     CHECK(jagger_config_init() == 1);
     CHECK(log_info("Sample message") == 1);
