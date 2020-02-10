@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <sys/stat.h>
 #include <cwalk.h>
 #include <tinydir.h>
 #include "rolling.h"
@@ -21,7 +22,7 @@ int roll_file_by_size(const char *filename) {
   cwk_path_get_basename(filename, &basename, &len_basename);
   cwk_path_get_dirname(filename, &len_dirname);
   cwk_path_get_extension(filename, &ext, &len_ext);
-  char dirname[len_dirname];
+  char dirname[FILENAME_MAX];
   strncpy(dirname, filename, len_dirname);
   dirname[len_dirname] = '\0';
   char *fname = strip_extension(basename, ext);
@@ -61,7 +62,7 @@ int roll_file_by_day(const char *filename) {
   cwk_path_get_basename(filename, &basename, &len_basename);
   cwk_path_get_dirname(filename, &len_dirname);
   cwk_path_get_extension(filename, &ext, &len_ext);
-  char dirname[len_dirname];
+  char dirname[FILENAME_MAX];
   strncpy(dirname, filename, len_dirname);
   dirname[len_dirname] = '\0';
   char *fname = strip_extension(basename, ext);
@@ -94,7 +95,7 @@ int count_old_logfiles(const char *logdir, const char *logname, const char *loge
   }
 
   int n = 0;
-  for (int i = 0; i < dir.n_files; i++) {
+  for (size_t i = 0; i < dir.n_files; i++) {
     tinydir_file file;
     if (tinydir_readfile_n(&dir, &file, i) == 0) {
       char *dot = strrchr(file.name, '.');

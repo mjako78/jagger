@@ -3,6 +3,11 @@
 # Using C++11 in the test
 add_definitions("-std=c++11")
 
+# Skip noisy warnings on MSVC build
+if(MSVC)
+  add_definitions("/wd4996")
+endif()
+
 # Using conan for dependencies
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()

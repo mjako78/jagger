@@ -66,6 +66,8 @@ file(GLOB SRC_LIST CONFIGURE_DEPENDS "${jagger_SOURCE_DIR}/src/*.cpp")
 if(MSVC)
   # On Windows make static library
   add_library(jagger STATIC ${SRC_LIST} ${inih_SOURCE_DIR}/ini.c ${HEADER_LIST})
+  # Skip noisy warnings
+  add_definitions("/wd4996")
 else()
   # On Unix make shared library
   add_library(jagger SHARED ${SRC_LIST} ${inih_SOURCE_DIR}/ini.c ${HEADER_LIST})
